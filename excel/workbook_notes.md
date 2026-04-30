@@ -1,0 +1,233 @@
+# Excel Workbook Build Notes
+## Stock Analyst's Workbook — `stock_analyst_workbook.xlsx`
+
+> **Audience:** Another analyst rebuilding from scratch, or an interviewer
+> verifying methodology. Every step is described at the click level.
+
+---
+
+## What Was Built Programmatically vs. Manually
+
+| Component | How it was created | File |
+|---|---|---|
+| All 6 sheets + formatting | `python/build_excel.py` (openpyxl) | `build_excel.py` |
+| Raw data as Excel Table `tbl_Stocks` | `build_excel.py` | auto |
+| KPI Summary values | `analysis.py` → written into cells | auto |
+| Pre-computed pivot-equivalent tables | `build_excel.py` (pandas groupby) | auto |
+| Line chart, bar chart, scatter chart | `build_excel.py` (openpyxl chart API) | auto |
+| **Live PivotTables** | **MUST BE ADDED MANUALLY — see below** | GUI |
+| **Slicers** | **MUST BE ADDED MANUALLY — see below** | GUI |
+
+---
+
+## Sheet-by-Sheet Build Steps
+
+### Sheet 1: Cover
+
+Auto-generated. Contains:
+- Title block (dark blue, 22pt)
+- Metadata: tickers, period, data source, build tool
+- Six business questions listed
+- Navigation table linking to each sheet
+
+To rebuild manually:
+1. Create new sheet, name it `Cover`
+2. Merge `B2:H2`, enter title, set fill to `#1F4E79`, font white 22pt bold
+3. Add metadata in rows 5–8 with `#DEEAF1` fill on label column
+4. List business questions with alternating `#F2F2F2` / white rows
+
+---
+
+### Sheet 2: Raw Data
+
+**Goal:** Import `stocks_cleaned.csv` as a named Excel Table so PivotTables
+can reference it dynamically.
+
+**Steps:**
+1. `Data → Get Data → From File → From Text/CSV`
+2. Navigate to `data/cleaned/stocks_cleaned.csv` → Load
+3. In the Data tab, click `Queries & Connections` to confirm import
+4. Click any cell in the data → `Table Design → Table Name: tbl_Stocks`
+5. Apply `TableStyleMedium9` (blue striped)
+
+**Column types to set after import:**
+| Column | Type | Format |
+|---|---|---|
+| `date` | Date | `YYYY-MM-DD` |
+| `open`, `high`, `low`, `close` | Number | `#,##0.00` |
+| `volume` | Number | `#,##0` |
+| `daily_return`, `log_return` | Number | `0.0000%` |
+| `year`, `month`, `quarter` | Number | General |
+| `day_of_week` | Text | General |
+
+6. Freeze row 1: `View → Freeze Panes → Freeze Top Row`
+
+---
+
+### Sheet 3: KPI Summary
+
+**Goal:** One row per ticker showing the six key metrics with Excel formulas
+that recalculate if the underlying data changes.
+
+**Layout (row 4 onward, one row per ticker: MSFT, NVDA, TSLA, AAPL):**
+
+| Col | Header | Formula (AAPL example) |
+|---|---|---|
+| A | Ticker | `"AAPL"` (hardcoded) |
+| B | Total Return | `=XLOOKUP(MAX(FILTER(tbl_Stocks[date],tbl_Stocks[ticker]="AAPL")),tbl_Stocks[date],tbl_Stocks[close]) / XLOOKUP(MIN(FILTER(tbl_Stocks[date],tbl_Stocks[ticker]="AAPL")),tbl_Stocks[date],tbl_Stocks[close]) - 1` |
+| C | Ann. Return | `=AVERAGE(FILTER(tbl_Stocks[daily_return],tbl_Stocks[ticker]="AAPL"))*252` |
+| D | Ann. Volatility | `=STDEV(FILTER(tbl_Stocks[daily_return],tbl_Stocks[ticker]="AAPL"))*SQRT(252)` |
+| E | Sharpe Ratio | `=(C4-0.045)/D4` |
+| F | Max Drawdown | *(pre-computed — see note below)* |
+| G | Avg Daily Volume | `=AVERAGEIF(tbl_Stocks[ticker],"AAPL",tbl_Stocks[volume])` |
+
+> **Max Drawdown note:** Excel has no native drawdown function. Use the value
+> from `data/cleaned/summary_stats.csv`, or compute it with a helper column:
+> add `=B2/MAX($B$2:B2)-1` down a helper column of AAPL closes, then
+> `=MIN(helper_range)`.
+
+**Conditional formatting:**
+- Select Sharpe Ratio column (E4:E7)
+- `Home → Conditional Formatting → Color Scales → Red-White-Green`
+- Repeat for Max Drawdown column (F4:F7) — reverse scale (most negative = most red)
+
+**Number formats:**
+- Columns B, C, D, F: `0.00%`
+- Column E: `0.00`
+- Column G: `#,##0`
+
+---
+
+### Sheet 4: Pivot Analysis — Creating Live PivotTables
+
+> The workbook ships with pre-computed equivalents. Follow these steps to
+> replace them with live interactive PivotTables.
+
+#### Step 1 — Create Pivot 1: Avg Daily Return by Ticker × Year
+
+1. Click any cell inside `tbl_Stocks` (Raw Data sheet)
+2. `Insert → PivotTable → From Table/Range`
+3. Select **New Worksheet**, click OK — rename the sheet `Pivot Analysis`
+4. In the PivotTable Fields pane:
+   - **Rows:** drag `ticker`
+   - **Columns:** drag `year`
+   - **Values:** drag `daily_return` → click the field → `Value Field Settings → Average`
+5. Right-click any value → `Number Format → Percentage, 2 decimal places`
+6. Select all value cells → `Home → Conditional Formatting → Color Scales → Red-White-Green`
+
+#### Step 2 — Create Pivot 2: Total Volume by Month × Ticker (same sheet)
+
+1. Click outside Pivot 1 (below it) → `Insert → PivotTable → From Table/Range → Existing Worksheet`
+2. Click the destination cell
+3. PivotTable Fields:
+   - **Rows:** drag `month`
+   - **Columns:** drag `ticker`
+   - **Values:** drag `volume` → `Sum`
+4. `Number Format → #,##0`
+
+#### Step 3 — Create Pivot 3: Up Days vs. Down Days
+
+Option A — Calculated Field:
+1. Click inside any PivotTable → `PivotTable Analyze → Fields, Items & Sets → Calculated Field`
+2. Name: `Up Day` | Formula: `=IF(daily_return>0,1,0)`
+3. Drag `Up Day` to Values → `Sum` gives count of up days
+4. Drag `daily_return` (Count) for total days → compute % manually
+
+Option B — Helper column in Raw Data (simpler):
+1. Add column `N` in Raw Data: header `up_day`, formula `=IF([@daily_return]>0,1,0)`
+2. Use `up_day` in Pivot 3 → Values: Sum (= count of up days)
+
+#### Step 4 — Add Slicers
+
+1. Click inside **Pivot 1**
+2. `PivotTable Analyze → Insert Slicer → check 'ticker' and 'year'` → OK
+3. Right-click the **Ticker slicer → Report Connections**
+4. Check **all three pivot tables** → OK
+5. Right-click the **Year slicer → Report Connections** → check Pivot 1 and Pivot 2
+
+**Slicer formatting:**
+- `Slicer tab → Slicer Styles → choose a matching blue style`
+- Arrange slicers to the right of the pivot tables
+
+#### Step 5 — Add a PivotChart
+
+1. Click inside **Pivot 1**
+2. `PivotTable Analyze → PivotChart → Column → Clustered Column → OK`
+3. Move the chart below the pivot tables
+4. `Chart Design → Change Colors → Colorful Palette 4`
+5. Add axis titles: "Average Daily Return" (Y), "Year" (X)
+
+---
+
+### Sheet 5: Charts
+
+Three charts are embedded in the workbook by `build_excel.py`:
+
+| Chart | Type | X axis | Y axis | Data source |
+|---|---|---|---|---|
+| Closing Price Over Time | Line | Date | Price ($) | All 781 dates × 4 ticker close prices |
+| Average Daily Volume | Column (bar) | Ticker | Avg Shares/Day | summary_stats.csv avg_daily_volume |
+| Risk vs. Return | Scatter | Ann. Volatility | Ann. Return | summary_stats.csv, one point per ticker |
+
+**To rebuild charts manually:**
+
+**Line chart:**
+1. Create a helper table with columns: `date | AAPL | MSFT | NVDA | TSLA`
+   (use: `=AVERAGEIFS(tbl_Stocks[close],tbl_Stocks[ticker],"AAPL",tbl_Stocks[date],A2)` — one row per date)
+   or easier: pivot close prices with date on rows, ticker on columns
+2. Select the table → `Insert → Charts → Line → Line with Markers`
+3. Right-click X axis → Format Axis → Date axis
+
+**Scatter chart (risk vs. return):**
+1. Build a 4-row table: Ticker | Ann Vol | Ann Return
+2. Select Vol + Return columns → `Insert → Charts → Scatter`
+3. `Chart Design → Select Data → Edit each series to label it with the ticker name`
+4. Add data labels: right-click series → Add Data Labels → Label Options → "Value from cells" → select ticker column
+
+**Volume bar chart:**
+1. Select Ticker + Avg Vol columns from summary table
+2. `Insert → Charts → Column → Clustered Column`
+
+---
+
+### Sheet 6: Insights
+
+Auto-generated with six analytical findings. To rebuild manually:
+1. Create sheet, name it `Insights`
+2. Each finding: section title row (blue fill, white text) + body text below (gray fill, wrap text)
+3. Findings are derived from `data/cleaned/summary_stats.csv` — numbers are hard-coded but can be formula-referenced
+
+---
+
+## Conditional Formatting Rules Applied
+
+| Sheet | Range | Rule | Colors |
+|---|---|---|---|
+| KPI Summary | Sharpe Ratio column | 3-color scale | Min=Red, 0=White, Max=Green |
+| KPI Summary | Max Drawdown column | 3-color scale | Min=Red, -40%=White, Max=Green |
+| Pivot Analysis | Pivot 1 value range | 3-color scale | Min=Red, 0=White, Max=Green |
+
+---
+
+## Number Formatting Standards
+
+| Data type | Format code |
+|---|---|
+| Percentage (2 dec) | `0.00%` |
+| Percentage (4 dec) | `0.0000%` |
+| Price | `#,##0.00` |
+| Volume / large integer | `#,##0` |
+| Ratio (Sharpe) | `0.00` |
+| Date | `YYYY-MM-DD` |
+
+---
+
+## Acceptance Checklist
+
+- [ ] All 6 sheets exist and named correctly
+- [ ] `tbl_Stocks` Excel Table exists in Raw Data (3,124 rows + header)
+- [ ] PivotTables update when slicers are clicked
+- [ ] No `#REF!`, `#DIV/0!`, or `#NAME?` errors
+- [ ] Cover sheet navigation visible
+- [ ] All 3 charts render (line, scatter, bar)
+- [ ] Screenshot saved to `screenshots/excel_pivot_view.png`

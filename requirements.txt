@@ -17,3 +17,6 @@ scipy==1.13.1
 
 # Utilities
 python-dateutil==2.9.0.post0
+
+# Excel workbook generation (Phase 6)
+openpyxl==3.1.5
