@@ -40,7 +40,7 @@ Each project answers the same 6 business questions:
 - **Date range:** 2022-01-03 to 2024-12-31
 - **Primary source:** Yahoo Finance via `yfinance`
 - **Fallback:** Synthetic data via Geometric Brownian Motion (see `python/download_data.py`)
-- **Source used:** _(to be filled after Phase 2 completes)_
+- **Source used:** Synthetic GBM (yfinance blocked by network — fallback activated automatically; see `python/download_data.py` for parameters)
 
 ---
 
