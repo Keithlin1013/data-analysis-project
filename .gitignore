@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# VS Code
+.vscode/
+
+# SQLite database file (generated, not source)
+*.db
+*.sqlite
+
+# Large binary files — commit only the source CSVs, not the tool files
+# (remove these lines if you want to commit .xlsx/.pbix/.twbx)
+# excel/*.xlsx
+# powerbi/*.pbix
+# tableau/*.twbx
+
+# Environment / secrets
+.env
+*.pem

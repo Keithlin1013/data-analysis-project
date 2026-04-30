@@ -1,0 +1,19 @@
+# Stock Market Performance Analysis — Python dependencies
+# Python 3.9+ required
+# Pin versions for reproducibility
+
+# Data ingestion
+yfinance==0.2.51
+
+# Core data processing
+pandas==2.2.3
+numpy==1.26.4
+
+# Analysis / statistics
+scipy==1.13.1
+
+# Database
+# sqlite3 is part of the Python standard library — no install needed
+
+# Utilities
+python-dateutil==2.9.0.post0
