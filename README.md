@@ -46,7 +46,9 @@ Each project answers the same 6 business questions:
 
 ## Project 1: Stock Analyst's Workbook (Excel)
 
-> _Section to be completed after Phase 6._
+**Status: built.** `excel/stock_analyst_workbook.xlsx` has 12 sheets — 6
+generated programmatically (`python/build_excel.py`, via openpyxl) and 6
+more built by hand in Excel on top of that base.
 
 **Tool:** Microsoft Excel  
 **Why Excel:** Best tool for hands-on exploratory analysis where the analyst
@@ -55,55 +57,96 @@ needs to slice data interactively and build formula-driven summaries quickly.
 **File:** `excel/stock_analyst_workbook.xlsx`  
 **Build notes:** `excel/workbook_notes.md`
 
+**Sheets:**
+- **Cover** — title, business questions, navigation
+- **Raw Data** — `stocks_cleaned.csv` as Excel Table `tbl_Stocks` (3,124 rows)
+- **KPI Summary** — per-ticker total/annualized return, volatility, Sharpe, drawdown, avg volume, with conditional formatting
+- **PT - Avg Return**, **PT - Volatility**, **PT - Return Over Time** — three live, interactive Excel PivotTables built from a shared pivot cache over `tbl_Stocks`
+- **Pivot Analysis** — pre-computed pivot-equivalent tables (return by ticker×year, volume by month, up/down day counts)
+- **Dashboard** — summary view pulling live formulas from KPI Summary
+- **Rolling Analytics** — 30-day rolling annualized volatility and rolling Sharpe ratio per ticker
+- **Portfolio Construction** — equal-weight vs. custom-weight allocation comparison
+- **Charts** — line (price trend), bar (volume), scatter (risk vs. return)
+- **Insights** — 6 written analytical findings with investment recommendation
+
+**Known gap:** Slicers have not been added to the PivotTables yet (see
+`excel/workbook_notes.md` for the exact remaining steps).
+
 ### Screenshot
-_(to be added after Phase 6)_
+_(pending — no GUI screenshot has been captured yet)_
 
 ### Key Insights
-_(to be filled after Phase 6)_
+- MSFT has the best risk-adjusted return (Sharpe 0.84) of the four tickers
+- NVDA has the highest raw annualized return (+34%) but at 67% volatility
+- TSLA is the standout underperformer, with an −89% max drawdown
 
 ---
 
 ## Project 2: Stock Performance Executive Dashboard (Power BI)
 
-> _Section to be completed after Phase 7._
+**Status: build notes ready; `.pbix` not yet built.** Power BI Desktop is a
+GUI application and doesn't run in this environment, so the dashboard hasn't
+been assembled yet. `powerbi/dashboard_notes.md` contains a complete,
+click-level build guide (data import, data model, all 7 DAX measures, and
+the layout for all 3 pages) so it can be built from the CSVs in one sitting.
 
 **Tool:** Power BI Desktop  
 **Why Power BI:** Best for enterprise KPI monitoring where stakeholders need
 a live, filterable dashboard with calculated metrics and drill-through.
 
-**File:** `powerbi/stock_executive_dashboard.pbix`  
+**File:** `powerbi/stock_executive_dashboard.pbix` _(not yet created)_  
 **Build notes:** `powerbi/dashboard_notes.md`
 
 ### Screenshot
-_(to be added after Phase 7)_
+_(pending — file not yet built)_
 
 ### Key Insights
-_(to be filled after Phase 7)_
+_(to be filled in once the dashboard is built)_
 
 ---
 
 ## Project 3: Stock Market Storytelling Report (Tableau)
 
-> _Section to be completed after Phase 8._
+**Status: build notes ready; `.twbx` not yet built.** Same situation as
+Power BI — Tableau Desktop/Public is a GUI application not available in
+this environment. `tableau/tableau_story_notes.md` contains the full build
+guide: 5 calculated fields, 5 worksheets, 2 dashboards, and exact caption
+text for the 4-point story.
 
 **Tool:** Tableau Public  
 **Why Tableau:** Best for narrative-driven presentations where the goal is
 guiding a non-technical audience through a sequence of insights.
 
-**File:** `tableau/stock_market_story.twbx`  
+**File:** `tableau/stock_market_story.twbx` _(not yet created)_  
 **Build notes:** `tableau/tableau_story_notes.md`
 
 ### Screenshot
-_(to be added after Phase 8)_
+_(pending — file not yet built)_
 
 ### Key Insights
-_(to be filled after Phase 8)_
+_(to be filled in once the story is built)_
 
 ---
 
 ## Top 5 Insights
 
-_(to be filled after all three projects complete)_
+Computed in `python/analysis.py` from three years of (synthetic) daily
+price data — see `data/cleaned/summary_stats.csv` and
+`data/cleaned/correlation_matrix.csv`:
+
+1. **MSFT is the best risk-adjusted bet.** Highest Sharpe ratio (0.84) of
+   the four tickers, driven by a strong +96% total return at a comparatively
+   modest 25% annualized volatility.
+2. **NVDA is the high-risk, high-reward story.** Highest raw annualized
+   return (+34%), but at 67% annualized volatility — more than 2.5x MSFT's —
+   and a −64% max drawdown along the way.
+3. **TSLA is the cautionary tale.** Negative total return (−51.5%) despite
+   volatility on par with NVDA, with a −89% max drawdown at its worst point.
+4. **AAPL is "safe but disappointing."** Lowest volatility (26.7%) of the
+   four, but total return over the period was essentially flat (−5.5%).
+5. **AAPL and MSFT are negatively correlated (−0.59).** That matters for
+   portfolio construction — holding both partially hedges risk, which the
+   Excel workbook's Portfolio Construction sheet explores directly.
 
 ---
 
@@ -121,7 +164,7 @@ _(to be filled after all three projects complete)_
 
 ```bash
 git clone <repo-url>
-cd stock-market-analysis
+cd data-analysis-project
 
 # Create virtual environment (recommended)
 python3 -m venv .venv
@@ -170,6 +213,4 @@ Open the Excel, Power BI, or Tableau files to explore the results.
 
 ## Author
 
-_(Your name here)_  
-Data Analyst | New York, NY  
-[LinkedIn]() · [GitHub]()
+Data Analyst

@@ -22,7 +22,7 @@
 
 | Phase | Tool | Status | Output | Notes |
 |---|---|---|---|---|
-| 6 | Excel | ✅ Done (partial) | `excel/stock_analyst_workbook.xlsx` (318 KB) + `excel/workbook_notes.md` | Built via openpyxl — **PivotTables + Slicers require GUI** (see workbook_notes.md) |
+| 6 | Excel | ✅ Done (slicers pending) | `excel/stock_analyst_workbook.xlsx` (1.1 MB, 12 sheets) + `excel/workbook_notes.md` | 6 sheets via openpyxl + 6 more built manually in Excel, incl. 3 live PivotTables — **slicers still not added** (see workbook_notes.md) |
 | 7 | Power BI | 📋 Notes ready | `powerbi/dashboard_notes.md` | `.pbix` requires Power BI Desktop GUI — full step-by-step instructions written |
 | 8 | Tableau | 📋 Notes ready | `tableau/tableau_story_notes.md` | `.twbx` requires Tableau Desktop/Public GUI — full step-by-step instructions written |
 
@@ -36,10 +36,15 @@
 - Sheet 5: Charts — 3 openpyxl charts (line: price trend, bar: volume, scatter: risk vs. return)
 - Sheet 6: Insights — 6 written analytical findings with investment recommendation
 
-**Must be added manually (GUI only — openpyxl limitation):**
-- Live interactive PivotTables (step-by-step: `excel/workbook_notes.md`)
-- Slicers connected across pivot tables
-- PivotChart linked to Pivot 1
+**Added manually afterward, in Excel (GUI):**
+- 3 live PivotTables sharing one pivot cache over `tbl_Stocks`: `PT - Avg Return`, `PT - Volatility`, `PT - Return Over Time` (year/month × ticker)
+- `Dashboard` sheet — live-formula summary view of KPI Summary
+- `Rolling Analytics` sheet — 30-day rolling annualized volatility + rolling Sharpe
+- `Portfolio Construction` sheet — equal-weight vs. custom-weight allocation comparison
+
+**Still open:**
+- Slicers connected across the 3 PivotTables
+- Screenshot → `screenshots/excel_pivot_view.png`
 
 ### Phase 7 — Power BI Detail (GUI instructions written)
 
@@ -122,7 +127,7 @@ python/
 sql/
   stock_analysis.sql                 (8 analytical queries)
 excel/
-  stock_analyst_workbook.xlsx        (318 KB — 6 sheets, tbl_Stocks, 3 charts)
+  stock_analyst_workbook.xlsx        (1.1 MB — 12 sheets, tbl_Stocks, 3 live PivotTables, 12 charts)
   workbook_notes.md                  (full rebuild instructions + PivotTable GUI steps)
 powerbi/
   dashboard_notes.md                 (DAX measures + 3-page build instructions)
@@ -146,8 +151,8 @@ stocks.db                            (SQLite, 572 KB — gitignored)
 
 ## Next Steps
 
-1. **Phase 6 (complete):** Open `excel/stock_analyst_workbook.xlsx` → follow `workbook_notes.md` to add live PivotTables and Slicers → take screenshot → save to `screenshots/excel_pivot_view.png`
+1. **Phase 6 (nearly complete):** PivotTables are live in `excel/stock_analyst_workbook.xlsx` → still need Slicers (see `workbook_notes.md` Step 4) → take screenshot → save to `screenshots/excel_pivot_view.png`
 2. **Phase 7:** Open Power BI Desktop → follow `powerbi/dashboard_notes.md` → build dashboard → save as `powerbi/stock_executive_dashboard.pbix` → screenshot
 3. **Phase 8:** Open Tableau Public → follow `tableau/tableau_story_notes.md` → build story → export as `tableau/stock_market_story.twbx` → screenshot
-4. **Phase 9:** Update `README.md` with actual screenshots, insights, and file links.
-5. **Phase 10–11:** Interview prep → GitHub publish.
+4. **Phase 9:** Update `README.md` with actual screenshots and Power BI/Tableau insights once those two are built.
+5. **Phase 10–11:** Interview prep → GitHub publish. _(Repo pushed to GitHub as a private repo; see git remote.)_
